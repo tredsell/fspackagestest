@@ -20,6 +20,8 @@
         "semi": [2, "always"]
     },
     "globals": {
+        "CJ4_FMC_Nearest": "writable",
+        "LateralNavModeState": "writable",
         "EBingReference": "writable",
         "Vec2": "writable",
         "AirportSize": "writable",

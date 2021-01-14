@@ -20,6 +20,7 @@ declare module "MSFS" {
     legAltitudeDescription: number;
     legAltitude1: number;
     legAltitude2: number;
+    speedConstraint: number;
     additionalData: { [key: string]: any }
     _svgElements: any;
   }
@@ -123,6 +124,7 @@ declare module "MSFS" {
     distance: number;
     rho: number;
     theta: number;
+    turnDirection: number;
   }
 
   export class LatLongAlt {
@@ -140,6 +142,7 @@ declare module "MSFS" {
   export class Simplane {
     static getHeadingMagnetic(): number;
     static getGroundSpeed(): number;
+    static getNextWaypointName(): string;
   }
 
   export class EmptyCallback {
@@ -152,4 +155,8 @@ declare module "MSFS" {
   }
 
   export function RegisterViewListener(handler: string): void
+
+  export class FMCMainDisplay {
+    lastPos: string;
+  }
 }

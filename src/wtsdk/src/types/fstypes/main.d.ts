@@ -1,6 +1,7 @@
 /// <reference path='./FSTypes.d.ts' />
 
 declare module "WorkingTitle" {
+  import { FMCMainDisplay } from "MSFS"
   export class WTDataStore {
     /**
      * Retrieves a key from the datastore, possibly returning the default value
@@ -16,6 +17,12 @@ declare module "WorkingTitle" {
      * @param The value to store
      */
     static set(key: string, value: string | number | boolean): any;
+  }
+
+  export class CJ4_FMC extends FMCMainDisplay {
+    clearDisplay(): void;
+    registerPeriodicPageRefresh(action: function, interval: number, runImmediately: boolean): void;
+    unregisterPeriodicPageRefresh(): void;
   }
 
   export class LZUTF8 {
