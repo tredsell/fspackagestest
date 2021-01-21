@@ -419,11 +419,11 @@ cj4-mfd-element #Mainframe #Electricity #MainDisplay #SystemInfos2 .SystemFMS .c
             color: white;
             stroke: white; }
           #VORDMENavaids {
-            font-size: 28px;
+            font-size: 22px;
             position: absolute;
             top: 400px;
             top: 320px;
-            height: 200px;
+            height: 210px;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -432,7 +432,7 @@ cj4-mfd-element #Mainframe #Electricity #MainDisplay #SystemInfos2 .SystemFMS .c
             fill: none;
             stroke-width: 1px; }
           cj4-mfd-element #Mainframe #Electricity #MainDisplay #MapOverlay #NDInfo #Symbols {
-            top: 85%;
+            top: 72%;
             left: 87%;
             width: 11%;
             height: 5%;
@@ -490,7 +490,7 @@ cj4-mfd-element #Mainframe #Electricity #MainDisplay #SystemInfos2 .SystemFMS .c
               display: flex;
               align-items: baseline;
               justify-content: center;
-              font-size: calc( 1.95 * 1vh * var(--bodyHeightScale)); }
+              font-size: calc( 2.1 * 1vh * var(--bodyHeightScale)); }
               cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Coms #Gs_Value,
               cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Coms #Tas_Value,
               cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Coms #Rat_Value,
@@ -499,7 +499,7 @@ cj4-mfd-element #Mainframe #Electricity #MainDisplay #SystemInfos2 .SystemFMS .c
               cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Coms #Rat_Unit,
               cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Coms #Sat_Unit,
               cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Coms #Isa_Unit {
-                font-size: calc( 2.5 * 1vh * var(--bodyHeightScale));}
+                font-size: calc( 2.1 * 1vh * var(--bodyHeightScale));}
           cj4-mfd-element #Mainframe #Electricity #MainDisplay #NavBar #Cabs {
             display: none;
             justify-content: space-around;
@@ -665,13 +665,19 @@ cj4-mfd-element #Mainframe #Electricity #MainDisplay #SystemOverlay[visible=fals
   display: none; }
 
 .bearing-block-arrow {
-  width: 25px;
+  width: 18px;
   padding-top: 8px;
+  padding-left: 4px;
   float: left;
+  position: relative;
+  top: -10px;
 }
 
 .bearing-block-dist {
+  width: 45px;
   float: left;
+  margin-left: 6px;
+  line-height: 22px;
 }
 
 .bearing-pointer.arc {
@@ -704,3 +710,23 @@ div#VORDMENavaid_Right {
   text-align: left;
 }
 
+#Symbols ul {
+  font-size: 22px;
+  list-style: none;
+  padding: 0;
+  text-align: right;
+}
+
+#Symbols li {
+  padding: 0;
+}
+
+#Symbols .active {
+  font-size: 24px;
+  color: cyan;
+}
+
+#Symbols .overlay-wx-line1,
+#Symbols .overlay-wx-line2 {
+  color: cyan;
+}
