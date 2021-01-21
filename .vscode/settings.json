@@ -1,3 +1,4 @@
 {
-    "god.tsconfig": "./src\\wtsdk\\tsconfig.json"
+    "editor.tabSize": 2,
+    "editor.detectIndentation": true
 }
