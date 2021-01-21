@@ -1,3 +1,5 @@
+import { Coherent, RegisterViewListener } from "MSFS"
+import { WTDataStore } from "WorkingTitle";
 import { FlightPlanManager } from "./FlightPlanManager";
 
 /** A class for syncing a flight plan with the game */
@@ -80,7 +82,6 @@ export class FlightPlanAsoboSync {
   }
 
   public static async SaveToGame(fpln: FlightPlanManager): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       FlightPlanAsoboSync.init();
       const plan = fpln.getCurrentFlightPlan();

@@ -1,3 +1,4 @@
+import { Avionics, LatLongAlt } from "MSFS";
 import { WorldMagneticModel } from "./WorldMagneticModel";
 
 /** A class for geographical mathematics. */

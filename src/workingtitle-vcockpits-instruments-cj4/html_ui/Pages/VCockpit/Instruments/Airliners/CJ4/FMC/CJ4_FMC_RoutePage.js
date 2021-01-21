@@ -100,7 +100,7 @@ class CJ4_FMC_RoutePage {
             }
 
             this._flightNoCell = "--------";
-            const flightNoValue = SimVar.GetSimVarValue("ATC FLIGHT NUMBER", "string");
+            let flightNoValue = SimVar.GetSimVarValue("ATC FLIGHT NUMBER", "string");
             if (flightNoValue) {
                 this._flightNoCell = flightNoValue;
             }
@@ -110,7 +110,8 @@ class CJ4_FMC_RoutePage {
             this._fmc.fpHasChanged = true;
             this._lsk6Field = "<CANCEL MOD";
             this._activateCell = "";
-        } else if (this._fmc.flightPlanManager.getCurrentFlightPlanIndex() === 0) {
+        }
+        else if (this._fmc.flightPlanManager.getCurrentFlightPlanIndex() === 0) {
             this._fmc.fpHasChanged = false;
             this._activateCell = "PERF INIT>";
             this._lsk6Field = "<SEC FPLN[disabled]";
@@ -122,14 +123,14 @@ class CJ4_FMC_RoutePage {
             this._fplnVersion = currFplnVer;
 
             // fill in empty row
-            const emptyRow = new FpRow();
+            let emptyRow = new FpRow();
             const prevRow = this._rows[this._rows.length - 1];
             if (prevRow !== undefined) {
                 if (this._airwayInput !== "") {
                     emptyRow.airwayIn = this._airwayInput;
                     emptyRow.fpIdx = this._airwayIndex;
-                    const idx = this._rows.findIndex(x => x.fpIdx === this._airwayIndex) + 1;
-                    this._rows.splice(idx, 0, emptyRow);
+                    let idx = this._rows.findIndex(x => x.fpIdx === this._airwayIndex)+1;
+                    this._rows.splice(idx,0,emptyRow);
                 } else {
                     emptyRow.fpIdx = (prevRow.fpIdx + 2);
                     this._rows.push(emptyRow);
@@ -179,7 +180,7 @@ class CJ4_FMC_RoutePage {
     }
 
     renderRoutePage() {
-        const idx = this._offset;
+        let idx = this._offset;
 
         this._fmc._templateRenderer.setTemplateRaw([
             [" " + this._modStr + " FPLN[blue]", (this._currentPage + 1) + "/" + this._pageCount + " [blue]"],
@@ -203,7 +204,7 @@ class CJ4_FMC_RoutePage {
             // main page
             this._fmc.onLeftInput[0] = () => {
                 this._fmc.setMsg("Working...");
-                const value = this._fmc.inOut;
+                let value = this._fmc.inOut;
                 if (value == "") {
                     this._fmc.setMsg();
                     if (this._fmc.flightPlanManager.getOrigin()) {
@@ -217,7 +218,7 @@ class CJ4_FMC_RoutePage {
 
             this._fmc.onRightInput[0] = () => {
                 this._fmc.setMsg("Working...");
-                const value = this._fmc.inOut;
+                let value = this._fmc.inOut;
                 if (value == "") {
                     this._fmc.setMsg();
                     if (this._fmc.flightPlanManager.getDestination()) {
@@ -230,7 +231,7 @@ class CJ4_FMC_RoutePage {
             };
 
             this._fmc.onRightInput[4] = () => {
-                const value = this._fmc.inOut;
+                let value = this._fmc.inOut;
                 this._fmc.clearUserInput();
                 this._fmc.updateFlightNo(value, (result) => {
                     if (result) {
@@ -267,9 +268,7 @@ class CJ4_FMC_RoutePage {
                     this._airwayInput = "";
                     this._airwayIndex = -1;
                     this._fmc.fpHasChanged = false;
-                    this._fmc.eraseTemporaryFlightPlan(() => {
-                        this.update(true);
-                    });
+                    this._fmc.eraseTemporaryFlightPlan(() => { this.update(true); });
                 }
             }
         };
@@ -300,7 +299,7 @@ class CJ4_FMC_RoutePage {
 
     /**
      * Bind the LSK events to a plan row.
-     * @param {Number} lskIdx
+     * @param {Number} lskIdx 
      */
     bindRowEvents(lskIdx) {
         if (this._currentPage > 0) {
@@ -312,18 +311,17 @@ class CJ4_FMC_RoutePage {
                     const idx = lskIdx;
                     const lastWpIdx = this._rows[idx + this._offset - 1].fpIdx;
 
-                    const lastWaypoint = this._fmc.flightPlanManager.getWaypoints()[lastWpIdx];
+                    let lastWaypoint = this._fmc.flightPlanManager.getWaypoints()[lastWpIdx];
                     if (lastWaypoint.infos instanceof WayPointInfo) {
                         lastWaypoint.infos.UpdateAirway(value).then(() => {
-                            const airway = lastWaypoint.infos.airways.find(a => {
-                                return a.name === value;
-                            });
+                            let airway = lastWaypoint.infos.airways.find(a => { return a.name === value; });
                             this._fmc.setMsg();
                             if (airway) {
                                 this._airwayInput = airway.name;
                                 this._airwayIndex = lastWpIdx;
                                 this.update(true);
-                            } else {
+                            }
+                            else {
                                 this._fmc.showErrorMessage("NO AIRWAY MATCH");
                             }
                         });
@@ -354,7 +352,7 @@ class CJ4_FMC_RoutePage {
                                 this._fmc.showErrorMessage("NOT IN DATABASE");
                             }
                             const lastWpIdx = this._rows[idx + this._offset - 1].fpIdx;
-                            const lastWaypoint = this._fmc.flightPlanManager.getWaypoints()[lastWpIdx];
+                            let lastWaypoint = this._fmc.flightPlanManager.getWaypoints()[lastWpIdx];
                             lastWaypoint.infos.airwayOut = this._airwayInput;
                             CJ4_FMC_RoutePage.insertWaypointsAlongAirway(this._fmc, wpt.ident, lastWpIdx, this._airwayInput, (result) => {
                                 if (result) {
@@ -363,9 +361,8 @@ class CJ4_FMC_RoutePage {
                                     this._fmc.setMsg();
                                     // console.log("added " + wpt.ident);
                                     this.update(true);
-                                } else {
+                                } else
                                     this._fmc.showErrorMessage("NOT ON AIRWAY");
-                                }
                             });
                         });
                     });
@@ -427,17 +424,15 @@ class CJ4_FMC_RoutePage {
     }
 
     static async insertWaypointsAlongAirway(fmc, lastWaypointIdent, index, airwayName, callback = EmptyCallback.Boolean) {
-        const referenceWaypoint = fmc.flightPlanManager.getWaypoint(index);
+        let referenceWaypoint = fmc.flightPlanManager.getWaypoint(index);
         if (referenceWaypoint) {
-            const infos = referenceWaypoint.infos;
+            let infos = referenceWaypoint.infos;
             if (infos instanceof WayPointInfo) {
-                const airway = infos.airways.find(a => {
-                    return a.name === airwayName;
-                });
+                let airway = infos.airways.find(a => { return a.name === airwayName; });
                 if (airway) {
-                    const firstIndex = airway.icaos.indexOf(referenceWaypoint.icao);
-                    const lastWaypointIcao = airway.icaos.find(icao => icao.substring(7, 12) === lastWaypointIdent.padEnd(5, " "));
-                    const lastIndex = airway.icaos.indexOf(lastWaypointIcao);
+                    let firstIndex = airway.icaos.indexOf(referenceWaypoint.icao);
+                    let lastWaypointIcao = airway.icaos.find(icao => icao.substring(7, 12) === lastWaypointIdent.padEnd(5, " "));
+                    let lastIndex = airway.icaos.indexOf(lastWaypointIcao);
                     if (firstIndex >= 0) {
                         if (lastIndex >= 0) {
                             let inc = 1;
@@ -445,13 +440,13 @@ class CJ4_FMC_RoutePage {
                                 inc = -1;
                             }
 
-                            const count = Math.abs(lastIndex - firstIndex);
+                            let count = Math.abs(lastIndex - firstIndex);
                             for (let i = 1; i < count + 1; i++) { // 9 -> 6
-                                const syncInsertWaypointByIcao = async (icao, idx) => {
+                                let syncInsertWaypointByIcao = async (icao, idx) => {
                                     return new Promise(resolve => {
                                         console.log("add icao:" + icao + " @ " + idx);
                                         fmc.flightPlanManager.addWaypoint(icao, idx, () => {
-                                            const waypoint = fmc.flightPlanManager.getWaypoint(idx);
+                                            let waypoint = fmc.flightPlanManager.getWaypoint(idx);
                                             waypoint.infos.UpdateAirway(airwayName).then(() => {
                                                 waypoint.infos.airwayIn = airwayName;
                                                 if (i < count) {
@@ -486,8 +481,8 @@ class CJ4_FMC_RoutePage {
     }
 
     static _GetAllRows(fmc) {
-        const allRows = [];
-        const flightPlanManager = fmc.flightPlanManager;
+        let allRows = [];
+        let flightPlanManager = fmc.flightPlanManager;
         let lastDepartureWaypoint = undefined;
         let foundActive = false; // haaaaackyyy
         if (flightPlanManager) {
@@ -501,7 +496,7 @@ class CJ4_FMC_RoutePage {
                     allRows.push(new FpRow(lastDepartureWaypoint.ident, lastDepartureIdx + 1, departure.name, undefined, foundActive));
                 }
             }
-            const fpIndexes = [];
+            let fpIndexes = [];
             const routeWaypoints = flightPlanManager.getEnRouteWaypoints(fpIndexes);
             let tmpFoundActive = false;
             for (let i = 0; i < routeWaypoints.length; i++) {
@@ -519,13 +514,13 @@ class CJ4_FMC_RoutePage {
                         const nextWp = routeWaypoints[i + 1];
                         if (nextWp) {
                             const airwayContinues = (wp.infos.airwayIn === wp.infos.airwayOut && nextWp.infos.airwayIn === wp.infos.airwayOut);
-                            if (airwayContinues) {
+                            if (airwayContinues)
                                 continue;
-                            }
                         }
                         allRows.push(new FpRow(wp.ident, fpIndexes[i], wp.infos.airwayIn, wp.infos.airwayOut, tmpFoundActive));
                         tmpFoundActive = false;
-                    } else {
+                    }
+                    else {
                         allRows.push(new FpRow(wp.ident, fpIndexes[i], undefined, wp.infos.airwayOut, tmpFoundActive));
                         tmpFoundActive = false;
                     }
@@ -591,37 +586,22 @@ class FpRow {
         this._isActive = isActive;
     }
 
-    get ident() {
-        return this._ident;
-    }
-    set ident(val) {
-        this._ident = val;
-    }
-    get fpIdx() {
-        return this._fpIdx;
-    }
-    set fpIdx(val) {
-        this._fpIdx = val;
-    }
-    get airwayOut() {
-        return this._airwayOut;
-    }
-    set airwayOut(val) {
-        this._airwayOut = val;
-    }
-    get airwayIn() {
-        return this._airwayIn;
-    }
-    set airwayIn(val) {
-        this._airwayIn = val;
-    }
+    get ident() { return this._ident; }
+    set ident(val) { this._ident = val; }
+    get fpIdx() { return this._fpIdx; }
+    set fpIdx(val) { this._fpIdx = val; }
+    get airwayOut() { return this._airwayOut; }
+    set airwayOut(val) { this._airwayOut = val; }
+    get airwayIn() { return this._airwayIn; }
+    set airwayIn(val) { this._airwayIn = val; }
 
     getTemplate() {
         let row1tmpl, row2tmpl = ["", ""];
         if (this._airwayIn === undefined) {
             if (this._ident !== "-----") {
                 row1tmpl = ["DIRECT", this._ident];
-            } else {
+            }
+            else {
                 row1tmpl = ["-----", this._ident];
 
             }
@@ -641,3 +621,5 @@ class FpRow {
         return [row1tmpl, row2tmpl];
     }
 }
+
+//# sourceMappingURL=CJ4_FMC_RoutePage.js.map

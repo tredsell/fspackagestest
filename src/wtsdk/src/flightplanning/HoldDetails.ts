@@ -1,3 +1,5 @@
+import { Avionics, Simplane, SimVar } from 'MSFS';
+
 /**
  * Details of a hold procedure for a fix.
  */

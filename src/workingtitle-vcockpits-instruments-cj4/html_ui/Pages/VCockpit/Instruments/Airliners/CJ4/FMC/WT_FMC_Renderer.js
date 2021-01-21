@@ -46,7 +46,7 @@ class WT_FMC_Renderer {
         // console.log("Rendering page");
 
         // clear just to be sure
-        const existingContainer = document.getElementById("wt_container");
+        let existingContainer = document.getElementById("wt_container");
         if (existingContainer) existingContainer.remove();
 
         // create container
@@ -103,19 +103,17 @@ class WT_FMC_Renderer {
             container.appendChild(row);
         }
 
-        const mainFrame = document.getElementById("Electricity");
+        let mainFrame = document.getElementById("Electricity");
         mainFrame.appendChild(container);
     }
 
     // DIR = left, right, center
     renderLetters(template, row, dir = "left") {
         if (!row) return;
-        const cnt = this._fmc.parseContent(template); // TODO remove from fmc scope later
+        let cnt = this._fmc.parseContent(template); // TODO remove from fmc scope later
         let charCount = 0;
         // count all letters
-        cnt.forEach(x => {
-            charCount += x.textContent.length;
-        });
+        cnt.forEach(x => { charCount += x.textContent.length; });
 
         charCount = Math.min(charCount, 24);
 
@@ -128,7 +126,7 @@ class WT_FMC_Renderer {
 
         // render
         cnt.forEach(x => {
-            const letters = x.textContent.split("");
+            let letters = x.textContent.split("");
             (letters).forEach(c => {
                 if (ci > 23) return; // no break in js, wtf
                 row.childNodes[ci].childNodes[0].className = "";
@@ -165,7 +163,7 @@ class WT_FMC_Renderer {
     }
 
     getTRow(index) {
-        const container = document.getElementById("wt_container");
+        let container = document.getElementById("wt_container");
         if (!container) {
             console.warn("Warning: Row " + index + " not found");
             return undefined;
@@ -187,11 +185,11 @@ class WT_FMC_Renderer {
             this.renderLetters(this._fmc._errorMessage, row, "center");
         } else {
             // get inout
-            const inout = this._fmc.inOut;
+            let inout = this._fmc.inOut;
             this.renderLetters(" " + inout, row);
         }
 
-        // render hacky brackets
+        // render hacky brackets        
         row.childNodes[0].childNodes[0].classList.add("blue");
         row.childNodes[0].childNodes[0].textContent = "[";
         row.childNodes[23].childNodes[0].classList.add("blue");
@@ -199,7 +197,7 @@ class WT_FMC_Renderer {
     }
 
     renderMsgLineRaw(row) {
-        if (row === undefined) {
+        if(row === undefined){
             return;
         }
 
@@ -237,13 +235,6 @@ class WT_FMC_Renderer {
         const error_message = message;
         this.isDisplayingErrorMessage = true;
         this._errorMessage = error_message;
-
-        setTimeout(() => {
-            if (this.isDisplayingErrorMessage) {
-                this.onClr();
-                this.onEvent("trigger renderScratchpadRaw");
-            }
-        }, 1250);
 
         // if you remove this, scratchpad sometimes will not be rendered.
         // Because "renderScratchpadRaw()" will be called before "showErrorMessage()".
@@ -523,7 +514,7 @@ class WT_FMC_Renderer {
 
     // parses a template string and returns the elements array
     parseContent(content) {
-        const resultElems = [];
+        let resultElems = [];
 
         // if it starts with a bracket its probably empty
         if (content.startsWith("["))
@@ -534,16 +525,14 @@ class WT_FMC_Renderer {
         let match = rx.exec(content);
         if (match) {
             while (match != null) {
-                const el = document.createElement("span");
+                let el = document.createElement("span");
 
                 el.textContent = match[1].replace("__LSB", "[").replace("__RSB", "]");
 
                 if (match[2]) {
                     // eslint-disable-next-line no-useless-escape
-                    const classes = match[2].match(/[^\s\[\]]+/g);
-                    classes.forEach(c => {
-                        el.classList.add(c);
-                    });
+                    let classes = match[2].match(/[^\s\[\]]+/g);
+                    classes.forEach(c => { el.classList.add(c); });
                 }
                 resultElems.push(el);
                 match = rx.exec(content);
@@ -575,11 +564,11 @@ class WT_FMC_Renderer {
     renderScratchpad() {
         // make footer accesible from css
         document.getElementById("in-out").parentElement.classList.add("footer");
-        const inoutelem = document.getElementById("in-out");
-        const brkOpen = document.createElement("span");
+        let inoutelem = document.getElementById("in-out");
+        let brkOpen = document.createElement("span");
         brkOpen.innerHTML = "[";
         brkOpen.classList.add("blue", "line-left");
-        const brkClose = document.createElement("span");
+        let brkClose = document.createElement("span");
         brkClose.innerHTML = "]";
         brkClose.classList.add("blue", "line-right");
         inoutelem.parentElement.appendChild(brkOpen);
@@ -587,12 +576,12 @@ class WT_FMC_Renderer {
     }
 
     renderMsgLine() {
-        const lineEl = document.createElement("div");
+        let lineEl = document.createElement("div");
         lineEl.id = "msg-line";
         lineEl.classList.add("line");
         document.getElementById("Electricity").append(lineEl);
 
-        const msgEl = document.createElement("div");
+        let msgEl = document.createElement("div");
         msgEl.classList.add("fitcontent", "line-left");
         lineEl.append(msgEl);
 
@@ -601,9 +590,9 @@ class WT_FMC_Renderer {
 
     clearDisplay() {
         // let mainFrame = this.getChildById("Electricity");
-        // // clear
+        // // clear         
         // this.generateHTMLLayout(mainFrame);
-        const container = document.getElementById("wt_container");
+        let container = document.getElementById("wt_container");
         if (container) container.remove();
     }
 }

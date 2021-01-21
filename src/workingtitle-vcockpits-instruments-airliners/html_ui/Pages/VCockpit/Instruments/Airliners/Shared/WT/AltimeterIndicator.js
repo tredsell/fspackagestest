@@ -1503,21 +1503,9 @@ class Jet_PFD_AltimeterIndicator extends HTMLElement {
     updateCursorScrolling(_altitude) {
         if (this.cursorIntegrals) {
             let hideZeros = (this.aircraft == Aircraft.A320_NEO) ? true : false;
-            // if(this.aircraft == Aircraft.CJ4){
-            //     if(_altitude < 10000){
-            //         this.cursorIntegrals[0].clear("X");
-            //     }else{
-            //         this.cursorIntegrals[0].update(_altitude, 10000, (hideZeros) ? 10000 : undefined);
-            //     }
-            //     if(_altitude < 1000){
-            //         this.cursorIntegrals[1].clear("X");
-            //     }else{
-            //         this.cursorIntegrals[1].update(_altitude, 1000, (hideZeros) ? 1000 : undefined);
-            //     }
-            // }else{
-                this.cursorIntegrals[0].update(_altitude, 10000, (hideZeros) ? 10000 : undefined);
-                this.cursorIntegrals[1].update(_altitude, 1000, (hideZeros) ? 1000 : undefined);
-            // }
+
+            this.cursorIntegrals[0].update(_altitude, 10000, (hideZeros) ? 10000 : undefined);
+            this.cursorIntegrals[1].update(_altitude, 1000, (hideZeros) ? 1000 : undefined);
             this.cursorIntegrals[2].update(_altitude, 100);
         }
         if (this.cursorDecimals) {
@@ -1715,3 +1703,4 @@ class Jet_PFD_AltimeterIndicator extends HTMLElement {
     }
 }
 customElements.define("jet-pfd-altimeter-indicator", Jet_PFD_AltimeterIndicator);
+//# sourceMappingURL=AltimeterIndicator.js.map

@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
+import { BaseInstrument, SimVar, EmptyCallback, LatLongAlt, Avionics, AirportInfo, WayPoint, OneWayRunway, Simplane, Coherent } from 'MSFS';
+import { ManagedFlightPlan } from '../wtsdk';
 import { FlightPlanSegment } from './FlightPlanSegment';
 import { FlightPlanAsoboSync } from './FlightPlanAsoboSync';
+import { LZUTF8, WTDataStore } from 'WorkingTitle'
+import * as _LZUTF8 from '../utils/LzUtf8'
 import { HoldDetails } from './HoldDetails';
-import { ManagedFlightPlan } from './ManagedFlightPlan';
 
 /**
  * A system for managing flight plan data used by various instruments.
@@ -38,7 +40,7 @@ export class FlightPlanManager {
     if (_parentInstrument.instrumentIdentifier == "CJ4_FMC") {
       this._isMaster = true;
       _parentInstrument.addEventListener("FlightStart", async function () {
-        const plan = new ManagedFlightPlan();
+        let plan = new ManagedFlightPlan();
         plan.setParentInstrument(_parentInstrument);
         this._flightPlans = [];
         this._flightPlans.push(plan);
@@ -77,7 +79,7 @@ export class FlightPlanManager {
 
   }
 
-  public onCurrentGameFlightLoaded(_callback: () => void) {
+  public onCurrentGameFlightLoaded(_callback: () => {}) {
     _callback();
   }
 
@@ -127,7 +129,7 @@ export class FlightPlanManager {
     this._getFlightPlan();
 
     if (this._flightPlans.length === 0) {
-      const newFpln = new ManagedFlightPlan();
+      let newFpln = new ManagedFlightPlan();
       newFpln.setParentInstrument(this._parentInstrument);
       this._flightPlans.push(new ManagedFlightPlan());
     }
@@ -342,11 +344,11 @@ export class FlightPlanManager {
    * Gets the distance, in NM, to the active waypoint.
    */
   public getDistanceToActiveWaypoint(): number {
-    const lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude");
-    const long = SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude");
-    const ll = new LatLongAlt(lat, long);
+    let lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude");
+    let long = SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude");
+    let ll = new LatLongAlt(lat, long);
 
-    const waypoint = this.getActiveWaypoint();
+    let waypoint = this.getActiveWaypoint();
     if (waypoint && waypoint.infos) {
       return Avionics.Utils.computeDistance(ll, waypoint.infos.coordinates);
     }
@@ -358,11 +360,11 @@ export class FlightPlanManager {
    * Gets the bearing, in degrees, to the active waypoint.
    */
   public getBearingToActiveWaypoint(): number {
-    const lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude");
-    const long = SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude");
-    const ll = new LatLongAlt(lat, long);
+    let lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude");
+    let long = SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude");
+    let ll = new LatLongAlt(lat, long);
 
-    const waypoint = this.getActiveWaypoint();
+    let waypoint = this.getActiveWaypoint();
     if (waypoint && waypoint.infos) {
       return Avionics.Utils.computeGreatCircleHeading(ll, waypoint.infos.coordinates);
     }
@@ -374,13 +376,13 @@ export class FlightPlanManager {
    * Gets the estimated time enroute to the active waypoint.
    */
   public getETEToActiveWaypoint(): number {
-    const lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude");
-    const long = SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude");
-    const ll = new LatLongAlt(lat, long);
+    let lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude");
+    let long = SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude");
+    let ll = new LatLongAlt(lat, long);
 
-    const waypoint = this.getActiveWaypoint();
+    let waypoint = this.getActiveWaypoint();
     if (waypoint && waypoint.infos) {
-      const dist = Avionics.Utils.computeDistance(ll, waypoint.infos.coordinates);
+      let dist = Avionics.Utils.computeDistance(ll, waypoint.infos.coordinates);
       let groundSpeed = SimVar.GetSimVarValue("GPS GROUND SPEED", "knots");
       if (groundSpeed < 50) {
         groundSpeed = 50;
@@ -409,7 +411,7 @@ export class FlightPlanManager {
     const currentFlightPlan = this._flightPlans[this._currentFlightPlanIndex];
 
     if (origin) {
-      const originInfos = origin.infos as AirportInfo;
+      let originInfos = origin.infos as AirportInfo;
       if (originInfos.departures !== undefined && currentFlightPlan.procedureDetails.departureIndex !== -1) {
         return originInfos.departures[currentFlightPlan.procedureDetails.departureIndex];
       }
@@ -426,7 +428,7 @@ export class FlightPlanManager {
     const currentFlightPlan = this._flightPlans[this._currentFlightPlanIndex];
 
     if (destination) {
-      const originInfos = destination.infos as AirportInfo;
+      let originInfos = destination.infos as AirportInfo;
       if (originInfos.arrivals !== undefined && currentFlightPlan.procedureDetails.arrivalIndex !== -1) {
         return originInfos.arrivals[currentFlightPlan.procedureDetails.arrivalIndex];
       }
@@ -443,7 +445,7 @@ export class FlightPlanManager {
     const currentFlightPlan = this._flightPlans[this._currentFlightPlanIndex];
 
     if (destination) {
-      const originInfos = destination.infos as AirportInfo;
+      let originInfos = destination.infos as AirportInfo;
       if (originInfos.approaches !== undefined && currentFlightPlan.procedureDetails.approachIndex !== -1) {
         return originInfos.approaches[currentFlightPlan.procedureDetails.approachIndex];
       }
@@ -453,13 +455,13 @@ export class FlightPlanManager {
   }
 
   public async getApproachConstraints(): Promise<WayPoint[]> {
-    const approachWaypoints = [];
-    const destination = await this._parentInstrument.facilityLoader.getFacilityRaw(this.getDestination().icao);
+    let approachWaypoints = [];
+    let destination = await this._parentInstrument.facilityLoader.getFacilityRaw(this.getDestination().icao);
 
     const currentFlightPlan = this._flightPlans[this._currentFlightPlanIndex];
 
     if (destination) {
-      const approach = destination.approaches[currentFlightPlan.procedureDetails.approachIndex];
+      let approach = destination.approaches[currentFlightPlan.procedureDetails.approachIndex];
       if (approach) {
         let approachTransition = approach.transitions[0];
         if (approach.transitions.length > 0) {
@@ -467,7 +469,7 @@ export class FlightPlanManager {
         }
         if (approach && approach.finalLegs) {
           for (let i = 0; i < approach.finalLegs.length; i++) {
-            const wp = new WayPoint(this._parentInstrument);
+            let wp = new WayPoint(this._parentInstrument);
             wp.icao = approach.finalLegs[i].fixIcao;
             wp.ident = wp.icao.substr(7);
             wp.legAltitudeDescription = approach.finalLegs[i].altDesc;
@@ -478,7 +480,7 @@ export class FlightPlanManager {
         }
         if (approachTransition && approachTransition.legs) {
           for (let i = 0; i < approachTransition.legs.length; i++) {
-            const wp = new WayPoint(this._parentInstrument);
+            let wp = new WayPoint(this._parentInstrument);
             wp.icao = approachTransition.legs[i].fixIcao;
             wp.ident = wp.icao.substr(7);
             wp.legAltitudeDescription = approachTransition.legs[i].altDesc;
@@ -816,12 +818,12 @@ export class FlightPlanManager {
       && currentFlightPlan.procedureDetails.departureRunwayIndex !== -1
       && currentFlightPlan.procedureDetails.departureIndex !== -1) {
 
-      const depRunway = (currentFlightPlan.originAirfield.infos as AirportInfo)
+      let depRunway = (currentFlightPlan.originAirfield.infos as AirportInfo)
         .departures[currentFlightPlan.procedureDetails.departureIndex]
         .runwayTransitions[currentFlightPlan.procedureDetails.departureRunwayIndex]
         .name.replace("RW", "");
 
-      const runway = (currentFlightPlan.originAirfield.infos as AirportInfo).oneWayRunways
+      let runway = (currentFlightPlan.originAirfield.infos as AirportInfo).oneWayRunways
         .find(r => { return r.designation.indexOf(depRunway) !== -1; });
 
       if (runway) {
@@ -848,12 +850,12 @@ export class FlightPlanManager {
       const runways = origin.infos.oneWayRunways;
 
       if (runways && runways.length > 0) {
-        const direction = Simplane.getHeadingMagnetic();
+        let direction = Simplane.getHeadingMagnetic();
         let bestRunway = runways[0];
         let bestDeltaAngle = Math.abs(Avionics.Utils.angleDiff(direction, bestRunway.direction));
 
         for (let i = 1; i < runways.length; i++) {
-          const deltaAngle = Math.abs(Avionics.Utils.angleDiff(direction, runways[i].direction));
+          let deltaAngle = Math.abs(Avionics.Utils.angleDiff(direction, runways[i].direction));
           if (deltaAngle < bestDeltaAngle) {
             bestDeltaAngle = deltaAngle;
             bestRunway = runways[i];
@@ -1205,10 +1207,10 @@ export class FlightPlanManager {
 
     if (approach && approach.name.includes('ILS')) {
       const destination = this.getDestination();
-      const approachRunway = this.getApproach().runway.trim();
+      let approachRunway = this.getApproach().runway.trim();
 
-      const aptInfo = destination.infos as AirportInfo;
-      const frequency = aptInfo.namedFrequencies.find(f => f.name.replace("RW0", "").replace("RW", "").indexOf(approachRunway) !== -1);
+      let aptInfo = destination.infos as AirportInfo;
+      let frequency = aptInfo.namedFrequencies.find(f => f.name.replace("RW0", "").replace("RW", "").indexOf(approachRunway) !== -1);
 
       if (frequency) {
         return frequency.value;
@@ -1385,15 +1387,9 @@ export class FlightPlanManager {
     const waypoint = currentFlightPlan.getWaypoint(index);
 
     if (waypoint) {
-      const newHoldWaypoint = Object.assign(new WayPoint(this._parentInstrument), waypoint);
-      newHoldWaypoint.infos = Object.assign(new WayPointInfo(this._parentInstrument), waypoint.infos);
+      waypoint.hasHold = true;
+      waypoint.holdDetails = details;
 
-      const segment = currentFlightPlan.findSegmentByWaypointIndex(index);
-
-      newHoldWaypoint.hasHold = true;
-      newHoldWaypoint.holdDetails = details;
-
-      currentFlightPlan.addWaypoint(newHoldWaypoint, index + 1, segment.type);
       await this._updateFlightPlanVersion();
     }
   }
@@ -1406,8 +1402,10 @@ export class FlightPlanManager {
     const currentFlightPlan = this._flightPlans[this._currentFlightPlanIndex];
     const waypoint = currentFlightPlan.getWaypoint(index);
 
-    if (waypoint && waypoint.hasHold) {
-      currentFlightPlan.removeWaypoint(index);
+    if (waypoint) {
+      waypoint.hasHold = false;
+      waypoint.holdDetails = undefined;
+
       await this._updateFlightPlanVersion();
     }
   }
@@ -1417,10 +1415,10 @@ export class FlightPlanManager {
    * @param distance The distance from destination we want the coordinates for.
    */
   public getCoordinatesAtNMFromDestinationAlongFlightPlan(distance: number): LatLongAlt {
-    const allWaypoints = this.getAllWaypoints();
-    const destination = this.getDestination();
+    let allWaypoints = this.getAllWaypoints();
+    let destination = this.getDestination();
     if (destination) {
-      const fromStartDistance = destination.cumulativeDistanceInFP - distance;
+      let fromStartDistance = destination.cumulativeDistanceInFP - distance;
       let prevIndex;
       let prev;
       let next;
@@ -1432,10 +1430,10 @@ export class FlightPlanManager {
           break;
         }
       }
-      const prevCD = prev.cumulativeDistanceInFP;
-      const nextCD = next.cumulativeDistanceInFP;
-      const d = (fromStartDistance - prevCD) / (nextCD - prevCD);
-      const output = new LatLongAlt();
+      let prevCD = prev.cumulativeDistanceInFP;
+      let nextCD = next.cumulativeDistanceInFP;
+      let d = (fromStartDistance - prevCD) / (nextCD - prevCD);
+      let output = new LatLongAlt();
       output.lat = Avionics.Utils.lerpAngle(prev.infos.coordinates.lat, next.infos.coordinates.lat, d);
       output.long = Avionics.Utils.lerpAngle(prev.infos.coordinates.long, next.infos.coordinates.long, d);
       return output;
@@ -1449,7 +1447,7 @@ export class FlightPlanManager {
     const fpln = window.localStorage.getItem(FlightPlanManager.FlightPlanKey)
     if (fpln === null || fpln === '') {
       this._flightPlans = [];
-      const initFpln = new ManagedFlightPlan();
+      let initFpln = new ManagedFlightPlan();
       initFpln.setParentInstrument(this._parentInstrument);
       this._flightPlans.push(initFpln);
     } else {

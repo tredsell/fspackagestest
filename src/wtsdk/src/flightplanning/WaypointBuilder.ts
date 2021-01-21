@@ -1,4 +1,5 @@
-import { FlightPlanManager } from "./FlightPlanManager";
+import { Avionics, BaseInstrument, IntersectionInfo, LatLongAlt, WayPoint } from "MSFS";
+import { FlightPlanManager } from "../wtsdk";
 import { GeoMath } from "./GeoMath";
 
 /**

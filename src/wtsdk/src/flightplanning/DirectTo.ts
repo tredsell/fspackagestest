@@ -1,4 +1,5 @@
-import { FlightPlanSegment } from "./FlightPlanSegment";
+import { WayPoint } from "MSFS";
+import { FlightPlanSegment } from "../wtsdk";
 
 /**
  * Information about the current direct-to procedures in the flight plan.
@@ -6,10 +7,10 @@ import { FlightPlanSegment } from "./FlightPlanSegment";
 export class DirectTo {
 
   /** Whether or not the current direct-to is in the flight plan. */
-  public waypointIsInFlightPlan = false;
+  public waypointIsInFlightPlan: boolean = false;
 
   /** Whether or not direct-to is active. */
-  public isActive = false;
+  public isActive: boolean = false;
 
   /** The current direct-to waypoint, if not part of the flight plan. */
   public waypoint?: WayPoint;
