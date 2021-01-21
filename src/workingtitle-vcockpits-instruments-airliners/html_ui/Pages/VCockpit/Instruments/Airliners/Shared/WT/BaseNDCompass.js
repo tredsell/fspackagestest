@@ -147,13 +147,6 @@ class Jet_NDCompass extends HTMLElement {
                 this._navigationMode = Jet_NDCompass_Navigation.NONE;
             }
         }
-
-        try {
-            this.navPreset = new NavPresetElement(document.querySelector('#NavPreset .preset-info'));
-            this.navTransferTuning = new NavTransferTuningElement(document.querySelector('#NavPreset .preset-tuning'));
-        }
-        catch (err) { }
-
         this.construct();
     }
     init() {
@@ -178,6 +171,12 @@ class Jet_NDCompass extends HTMLElement {
                     break;
                 }
         }
+
+        try {
+            this.navPreset = new NavPresetElement(document.querySelector('#NavPreset .preset-info'));
+            this.navTransferTuning = new NavTransferTuningElement(document.querySelector('#NavPreset .preset-tuning'));
+        }
+        catch (err) { }
     }
     constructArc() {
     }

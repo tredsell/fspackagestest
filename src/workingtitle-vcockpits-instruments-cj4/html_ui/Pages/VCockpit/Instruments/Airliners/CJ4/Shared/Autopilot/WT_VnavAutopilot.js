@@ -56,6 +56,14 @@ class WT_VerticalAutopilot {
         this._lastUpdateTime = undefined;
 
         /**
+        * The altitude at which the aircraft should level
+        * (This value is a proxy for alt slot 2 and is monitored by this class and
+        * inserted to alt slot 2 only when a level-off is commanded by VNAV)
+        * @type {number}
+        */
+        this._targetAltitude = undefined;
+
+        /**
         * The index of the waypoint we are continuing a descent through.
         * @type {number}
         */
@@ -66,6 +74,7 @@ class WT_VerticalAutopilot {
         * @type {number}
         */
         this._activeConstraintIndex = undefined;
+
     }
 
     get vnavState() {
@@ -77,7 +86,7 @@ class WT_VerticalAutopilot {
     }
 
     get distanceToTod() {
-        return SimVar.GetSimVarValue("L:WT_CJ4_TOD_REMAINING", "number");
+        return SimVar.GetSimVarValue("L:WT_CJ4_TOD_REMAINING", "number")
     }
 
     get groundSpeed() {
@@ -155,11 +164,12 @@ class WT_VerticalAutopilot {
     }
 
     get targetAltitude() {
-        return this._navModeSelector.managedAltitudeTarget;
+        return this._targetAltitude;
     }
 
     set targetAltitude(value) {
-        this._navModeSelector.managedAltitudeTarget;
+        this._targetAltitude = value;
+        this._navModeSelector.managedAltitudeTarget = this._targetAltitude;
     }
 
     get indicatedAltitude() {
@@ -168,7 +178,7 @@ class WT_VerticalAutopilot {
 
     get snowflake() {
         let snowflake = SimVar.GetSimVarValue('L:WT_CJ4_SNOWFLAKE', 'number') == 1;
-        return snowflake;
+        return snowflake
     }
 
     set snowflake(value) {
@@ -188,11 +198,7 @@ class WT_VerticalAutopilot {
     get currentSegment() {
         const currentIndex = this._vnav.flightplan.activeWaypointIndex;
         const currentSegmentIndex = this._vnav._verticalFlightPlan[currentIndex].segment;
-        let segment = this._vnav._verticalFlightPlanSegments.length - 1;
-        if (currentSegmentIndex) {
-            segment = currentSegmentIndex;
-        }
-        return this._vnav._verticalFlightPlanSegments[segment];
+        return this._vnav._verticalFlightPlanSegments[currentSegmentIndex];
     }
 
     get navMode() {
@@ -268,7 +274,7 @@ class WT_VerticalAutopilot {
                     console.log("path arm");
                     this._vnavPathStatus = VnavPathStatus.PATH_ARMED;
                 } else {
-                    this.checkPreselector();
+                    this.checkPreselector;
                 }
                 break;
             case VnavPathStatus.PATH_ARMED:
@@ -276,6 +282,7 @@ class WT_VerticalAutopilot {
                     this._vnavPathStatus = VnavPathStatus.NONE;
                     break;
                 }
+                this.setFmaVerticalArmedState();
                 if (this.canPathActivate()) {
                     console.log("path activate");
                     this._vnavPathStatus = VnavPathStatus.PATH_ACTIVE;
@@ -292,6 +299,7 @@ class WT_VerticalAutopilot {
                     break;
                 }
                 this.followPath();
+                this.setFmaVerticalArmedState();
                 break;
         }
 
@@ -302,6 +310,7 @@ class WT_VerticalAutopilot {
                 if (this.lateralMode === LateralNavModeState.APPR && this.approachMode === WT_ApproachType.RNAV) {
                     this._glidepathStatus = GlidepathStatus.GP_ARMED;
                     console.log("GP Armed");
+                    this._navModeSelector.currentArmedVnavState = VerticalNavModeState.GP;
                 }
                 break;
             case GlidepathStatus.GP_ARMED:
@@ -316,6 +325,7 @@ class WT_VerticalAutopilot {
                     this._glidepathStatus = GlidepathStatus.GP_ACTIVE;
                     this._vnavPathStatus = VnavPathStatus.NONE;
                     this._pathInterceptStatus = PathInterceptStatus.NONE;
+                    this.setFmaVerticalArmedState();
                 }
                 break;
             case GlidepathStatus.GP_ACTIVE:
@@ -334,6 +344,7 @@ class WT_VerticalAutopilot {
                 if (this.lateralMode === LateralNavModeState.APPR && this.approachMode === WT_ApproachType.ILS) {
                     this._glideslopeStatus = GlideslopeStatus.GS_ARMED;
                     console.log("GS Armed");
+                    this._navModeSelector.currentArmedVnavState = VerticalNavModeState.GS;
                 }
                 break;
             case GlideslopeStatus.GS_ARMED:
@@ -348,10 +359,11 @@ class WT_VerticalAutopilot {
                     this._glideslopeStatus = GlideslopeStatus.GS_ACTIVE;
                     this._vnavPathStatus = VnavPathStatus.NONE;
                     this._pathInterceptStatus = PathInterceptStatus.NONE;
+                    this.setFmaVerticalArmedState();
                 }
                 break;
             case GlideslopeStatus.GS_ACTIVE:
-                if (this.lateralMode !== LateralNavModeState.APPR || this.checkGlideslopeStatus(true) === GlideslopeStatus.NONE) {
+                if (this.lateralMode !== LateralNavModeState.APPR || this.approachMode !== WT_ApproachType.ILS) {
                     this.cancelGlideslope();
                     break;
                 }
@@ -367,11 +379,11 @@ class WT_VerticalAutopilot {
                 }
                 if (this.altSlot === AltitudeSlot.MANAGED) {
                     this.setAltitudeAndSlot(AltitudeSlot.SELECTED);
-                    this._navModeSelector.setProperAltitudeArmedState();
+                    this._navModeSelector.setProperVerticalArmedStates();
                 }
                 if (this.currentAltitudeTracking === AltitudeState.MANAGED) {
                     this.currentAltitudeTracking = AltitudeState.SELECTED;
-                    this._navModeSelector.setProperAltitudeArmedState();
+                    this._navModeSelector.setProperVerticalArmedStates();
                 }
                 if (this.donut != 0) {
                     this.setDonut(0);
@@ -382,41 +394,83 @@ class WT_VerticalAutopilot {
                     this.observeConstraints();
                 }
         }
-        this.setArmedApproachVerticalState();
-        this.setArmedVnavVerticalState();
+
         this.setSnowflake();
         this.monitorValues();
     }
 
-    setArmedApproachVerticalState() {
-        if (this._glidepathStatus === GlidepathStatus.GP_ARMED) {
-            this._navModeSelector.setArmedApproachVerticalState(VerticalNavModeState.GP);
+    setFmaVerticalArmedState() {
+        if (this._vnavPathStatus === VnavPathStatus.PATH_ARMED && this._navModeSelector.currentArmedVnavState !== VerticalNavModeState.PATH) {
+            this._navModeSelector.currentArmedVnavState = VerticalNavModeState.PATH;
+        } else if (this._glidepathStatus === GlidepathStatus.GP_ARMED && this._navModeSelector.currentArmedVnavState !== VerticalNavModeState.GP) {
+            this._navModeSelector.currentArmedVnavState = VerticalNavModeState.GP;
+        } else if (this._glideslopeStatus === GlideslopeStatus.GS_ARMED && this._navModeSelector.currentArmedVnavState !== VerticalNavModeState.GS) {
+            console.log("this._glideslopeStatus " + this._glideslopeStatus);
+            this._navModeSelector.currentArmedVnavState = VerticalNavModeState.GS;
         }
-        else if (this._glideslopeStatus === GlideslopeStatus.GS_ARMED) {
-            this._navModeSelector.setArmedApproachVerticalState(VerticalNavModeState.GS);
-        }
-        else {
-            if (this._navModeSelector.currentArmedApproachVerticalState !== VerticalNavModeState.NONE) {
-                this._navModeSelector.setArmedApproachVerticalState();
+        if (this._vnavPathStatus === VnavPathStatus.PATH_ACTIVE) {
+            if (this._navModeSelector.currentArmedVnavState === VerticalNavModeState.PATH && this._pathInterceptStatus !== PathInterceptStatus.LEVELED) {
+                this._navModeSelector.currentArmedVnavState = VerticalNavModeState.NONE;
+            }
+            if (Math.floor(this.selectedAltitude) >= this.targetAltitude && (this._pathInterceptStatus === PathInterceptStatus.INTERCEPTED
+                    || this._pathInterceptStatus === PathInterceptStatus.CONTINUOUS)) {
+                if (this._navModeSelector.currentArmedAltitudeState !== VerticalNavModeState.ALTS) {
+                    this._navModeSelector.currentArmedAltitudeState = VerticalNavModeState.ALTS;
+                }
+            } else if (this._pathInterceptStatus === PathInterceptStatus.INTERCEPTED || this._pathInterceptStatus === PathInterceptStatus.CONTINUOUS) {
+                if (this._navModeSelector.currentArmedAltitudeState !== VerticalNavModeState.ALTV) {
+                    this._navModeSelector.currentArmedAltitudeState = VerticalNavModeState.ALTV;
+                }
+            }
+        } else if (this._glidepathStatus === GlidepathStatus.GP_ACTIVE) {
+            if (this._navModeSelector.currentArmedVnavState === VerticalNavModeState.GP) {
+                this._navModeSelector.currentArmedVnavState = VerticalNavModeState.NONE;
+            }
+            if (this._navModeSelector.currentVerticalActiveState !== VerticalNavModeState.GP) {
+                this._navModeSelector.currentVerticalActiveState = VerticalNavModeState.GP;
+            }
+            if (this._navModeSelector.currentArmedAltitudeState !== VerticalNavModeState.NONE) {
+                this._navModeSelector.currentArmedAltitudeState = VerticalNavModeState.NONE;
+            }
+        } else if (this._glideslopeStatus === GlideslopeStatus.GS_ACTIVE) {
+            console.log("this._glideslopeStatus " + this._glideslopeStatus);
+            if (this._navModeSelector.currentArmedVnavState !== VerticalNavModeState.NONE) {
+                this._navModeSelector.currentArmedVnavState = VerticalNavModeState.NONE;
+            }
+            if (this._navModeSelector.currentVerticalActiveState !== VerticalNavModeState.GS) {
+                this._navModeSelector.currentVerticalActiveState = VerticalNavModeState.GS;
+            }
+            if (this._navModeSelector.currentArmedAltitudeState !== VerticalNavModeState.NONE) {
+                this._navModeSelector.currentArmedAltitudeState = VerticalNavModeState.NONE;
             }
         }
     }
 
-    setArmedVnavVerticalState() {
-        if (this._vnavPathStatus === VnavPathStatus.PATH_ARMED) {
-            this._navModeSelector.setArmedVnavState(VerticalNavModeState.PATH);
-        }
-        else {
-            if (this._navModeSelector.currentArmedVnavState === VerticalNavModeState.PATH) {
-                this._navModeSelector.setArmedVnavState();
-            }
-            if (this._navModeSelector.currentArmedVnavState === VerticalNavModeState.FLC && this._constraintStatus !== ConstraintStatus.LEVEL_CLIMB) {
-                this._navModeSelector.setArmedVnavState();
-            }
+    updateNavModeSelector(status = false) {
+        console.log("running updateNavModeSelector");
+
+        switch(status) {
+            case VnavPathStatus.PATH_ACTIVE:
+                if (Math.floor(this.selectedAltitude) < this.targetAltitude - 50) {
+                    this.currentAltitudeTracking = AltitudeState.MANAGED;
+                } else {
+                    this.currentAltitudeTracking = AltitudeState.SELECTED;
+                }
+                break;
+            case GlidepathStatus.GP_ACTIVE:
+                this.currentAltitudeTracking = AltitudeState.NONE;
+                break;
+            case PathInterceptStatus.LEVELING:
+                this.currentAltitudeTracking = AltitudeState.MANAGED;
+                break;
+            case false:
+                this.currentAltitudeTracking = AltitudeState.SELECTED;
+                break;
         }
     }
 
     canPathArm() {
+        
         switch(this.isVNAVOn) {
             case false:
                 break;
@@ -436,7 +490,7 @@ class WT_VerticalAutopilot {
                             return true;
                         } else {
                             console.log("no path");
-                            this.setArmedVnavVerticalState(VerticalNavModeState.NOPATH);
+                            this.fmaVerticalArmedState = VerticalNavModeState.NOPATH;
                         }
                     }
                 }
@@ -469,13 +523,12 @@ class WT_VerticalAutopilot {
 
     cancelGlidepath() {
         this._glidepathStatus = GlidepathStatus.NONE;
-        this.setArmedApproachVerticalState(this._glidepathStatus);
+        this._navModeSelector.currentArmedVnavState = VerticalNavModeState.NONE;
         this.snowflake = false;
     }
 
     cancelGlideslope() {
         this._glideslopeStatus = GlideslopeStatus.NONE;
-        this.setArmedApproachVerticalState(this._glideslopeStatus);
         this._navModeSelector.currentArmedVnavState = VerticalNavModeState.NONE;
     }
 
@@ -518,11 +571,8 @@ class WT_VerticalAutopilot {
         return this._glidepathStatus;
     }
 
-    checkGlideslopeStatus(activeNavIndex = false) {
-        let navIndex = this.navMode == 0 ? 1 : this.navMode;
-        if (activeNavIndex) {
-            navIndex = this.navMode;
-        }
+    checkGlideslopeStatus() {
+        const navIndex = this.navMode == 0 ? 1 : this.navMode;
         const signal = SimVar.GetSimVarValue("NAV HAS NAV:" + navIndex, "bool") !== 0 ? true : false;
         const isIls = signal ? SimVar.GetSimVarValue("NAV HAS LOCALIZER:" + navIndex, "bool") !== 0 : false;
         const gs = isIls ? SimVar.GetSimVarValue("NAV HAS GLIDE SLOPE:" + navIndex, "bool") !== 0 : false;
@@ -567,21 +617,18 @@ class WT_VerticalAutopilot {
             case PathInterceptStatus.INTERCEPTED:
                 if (this._glidepathStatus === GlidepathStatus.GP_ACTIVE) {
                     this.setVerticalNavModeState(VerticalNavModeState.GP);
-                    this._navModeSelector.setProperAltitudeArmedState();
                     if (this.altSlot !== AltitudeSlot.MANAGED) {
                         this.setAltitudeAndSlot(AltitudeSlot.MANAGED, -1000, true);
                     }
                 }
                 else if (this._glideslopeStatus === GlideslopeStatus.GS_ACTIVE) {
                     this.setVerticalNavModeState(VerticalNavModeState.GS);
-                    this._navModeSelector.setProperAltitudeArmedState();
                     if (this.altSlot !== AltitudeSlot.MANAGED) {
                         this.setAltitudeAndSlot(AltitudeSlot.MANAGED, -1000, true);
                     }
                 }
                 else if (this._vnavPathStatus === VnavPathStatus.PATH_ACTIVE) {
                     this.setVerticalNavModeState(VerticalNavModeState.PATH);
-                    this._navModeSelector.setProperAltitudeArmedState();
                     if (this.altSlot !== AltitudeSlot.SELECTED) {
                         this.setAltitudeAndSlot(AltitudeSlot.SELECTED);
                     }
@@ -782,9 +829,16 @@ class WT_VerticalAutopilot {
      * @param {boolean} forceSlot is to force the slot set in navModeSelector
      */
     setAltitudeAndSlot(activeSlot = AltitudeSlot.SELECTED, managedAltitude = false, forceSlot = false) {
+
         if (managedAltitude) {
             this.setManagedAltitude(managedAltitude);
         }
+
+        console.log("this.altSlot: " + this.altSlot);
+        console.log("activeSlot: " + activeSlot);
+
+
+
         if (this.altSlot !== activeSlot) {
             switch(activeSlot) {
                 case AltitudeSlot.SELECTED:
@@ -828,10 +882,12 @@ class WT_VerticalAutopilot {
                 if (this.targetAltitude >= this.selectedAltitude) {
                     if (this.currentAltitudeTracking !== AltitudeState.SELECTED) {
                         this.currentAltitudeTracking = AltitudeState.SELECTED;
+                        this._navModeSelector.setProperVerticalArmedStates();
                     }
                 } else {
                     if (this.currentAltitudeTracking !== AltitudeState.MANAGED) {
                         this.currentAltitudeTracking = AltitudeState.MANAGED;
+                        this._navModeSelector.setProperVerticalArmedStates();
                     }
                 }
                 break;
@@ -840,15 +896,15 @@ class WT_VerticalAutopilot {
                 if (this.targetAltitude <= this.selectedAltitude) {
                     if (this.currentAltitudeTracking !== AltitudeState.SELECTED) {
                         this.currentAltitudeTracking = AltitudeState.SELECTED;
+                        this._navModeSelector.setProperVerticalArmedStates();
                     }
                 } else {
                     if (this.currentAltitudeTracking !== AltitudeState.MANAGED) {
                         this.currentAltitudeTracking = AltitudeState.MANAGED;
+                        this._navModeSelector.setProperVerticalArmedStates();
                     }
                 }
                 break;
-            default:
-                this.currentAltitudeTracking = AltitudeState.NONE
         }
     }
 
@@ -878,10 +934,12 @@ class WT_VerticalAutopilot {
                 else if (this._navModeSelector.currentVerticalActiveState === VerticalNavModeState.ALTVCAP 
                         || this._navModeSelector.currentVerticalActiveState === VerticalNavModeState.ALTV) {
                     if (this.targetAltitude + 100 < this.selectedAltitude) {
-                        this._navModeSelector.setArmedVnavState(VerticalNavModeState.FLC);
+                        if (this._navModeSelector.currentArmedVnavState !== VerticalNavModeState.FLC) {
+                            this._navModeSelector.currentArmedVnavState = VerticalNavModeState.FLC;
+                        }
                     } else {
                         if (this._navModeSelector.currentArmedVnavState === VerticalNavModeState.FLC) {
-                            this._navModeSelector.setArmedVnavState();
+                            this._navModeSelector.currentArmedVnavState = VerticalNavModeState.NONE;
                         }
                     }
                 }
@@ -924,7 +982,7 @@ class WT_VerticalAutopilot {
                     }
                 }
                 this._constraintStatus = ConstraintStatus.NONE;
-                this._navModeSelector.setProperAltitudeArmedState();
+                this._navModeSelector.setProperVerticalArmedStates();
                 break;
         }
     }
@@ -938,15 +996,17 @@ class WT_VerticalAutopilot {
         if (resumeClimb && unrestricted) {
             this.targetAltitude = undefined;
             this._navModeSelector.currentVerticalActiveState = VerticalNavModeState.FLC;
+            this._navModeSelector.setProperVerticalArmedStates(true);
             this._navModeSelector.engageFlightLevelChange(WTDataStore.get('CJ4_vnavClimbIas', 240));
             this.setAltitudeAndSlot(AltitudeSlot.SELECTED, 0, true);
-            this._navModeSelector.setProperAltitudeArmedState();
+            this._navModeSelector.setProperVerticalArmedStates;
             return;
         }
         this.targetAltitude = this.constraint.altitude;
         this._activeConstraintIndex = this.constraint.index;
 
         if (resumeClimb) {
+            this._navModeSelector.setProperVerticalArmedStates(true);
             this.setManagedAltitude(50000);
                 if (this.selectedAltitude > this.targetAltitude + 100) {
                     this.currentAltitudeTracking = AltitudeState.MANAGED;
@@ -975,7 +1035,7 @@ class WT_VerticalAutopilot {
                 }
             }
         }
-        this._navModeSelector.setProperAltitudeArmedState();
+        this._navModeSelector.setProperVerticalArmedStates();
     }
 
     setManagedAltitude(altitude = -1000) {
@@ -1023,13 +1083,12 @@ class WT_VerticalAutopilot {
 
     checkPreselector() {
         const approachingTodDistance = 0.0125 * this.groundSpeed;
-        if (this.distanceToTod < approachingTodDistance && this.distanceToTod > 0 && this.selectedAltitude >= this._vnav.indicatedAltitude - 50) {
-            CJ4_FMC_MessageController.getInstance().post("CHECK ALT SEL", MessageLevel.White, () => {
-                return (this.selectedAltitude + 100) < this._vnav.indicatedAltitude || !this.isVNAVOn;
-            });
+        if (this.distanceToTod < approachingTodDistance && this.distanceToTod > 0) {
+            this._vnav.setCheckPreselector();
         }
     }
 
+    
 /////////////////////////////////////////////////////
 
     cancelConstraint() {
